@@ -45,7 +45,10 @@ func main() {
 
 	interactionRepository := interaction.NewRepository(db)
 
-	interactionAnalyzer := interaction.NewRuleBasedAnalyzer()
+	// ML Analyzer
+	interactionAnalyzer := interaction.NewMLAnalyzer(
+		"http://127.0.0.1:8000",
+	)
 
 	interactionService := interaction.NewService(
 		interactionRepository,
