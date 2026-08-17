@@ -1,0 +1,3 @@
+input,expected,predicted,confidence
+Saya tertarik dengan artificial intelligence,general,greeting,0.24109803572581767
+Saya ingin berbicara dengan AVIGO,general,greeting,0.37313902189077996
