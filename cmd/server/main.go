@@ -14,6 +14,10 @@ import (
 func main() {
 	cfg := config.Load()
 
+	// =========================
+	// Database
+	// =========================
+
 	db := database.Connect(cfg.DatabaseURL)
 
 	if err := database.Ping(db); err != nil {
@@ -23,10 +27,14 @@ func main() {
 		)
 	}
 
+	// =========================
+	// Fiber
+	// =========================
+
 	app := fiber.New()
 
 	// =========================
-	// Conversation module
+	// Conversation Module
 	// =========================
 
 	conversationRepository := conversation.NewRepository(db)
@@ -40,12 +48,11 @@ func main() {
 	)
 
 	// =========================
-	// Interaction module
+	// Interaction Module
 	// =========================
 
 	interactionRepository := interaction.NewRepository(db)
 
-	// ML Analyzer
 	interactionAnalyzer := interaction.NewMLAnalyzer(
 		"http://127.0.0.1:8000",
 	)
@@ -60,12 +67,14 @@ func main() {
 	)
 
 	// =========================
-	// API
+	// API v1
 	// =========================
 
 	api := app.Group("/api/v1")
 
-	// Conversation routes
+	// -------------------------
+	// Conversation Routes
+	// -------------------------
 
 	api.Post(
 		"/conversations",
@@ -82,7 +91,9 @@ func main() {
 		conversationHandler.AddMessage,
 	)
 
-	// Interaction routes
+	// -------------------------
+	// Interaction Routes
+	// -------------------------
 
 	api.Post(
 		"/interactions",
@@ -119,6 +130,10 @@ func main() {
 			"status": "ok",
 		})
 	})
+
+	// =========================
+	// Server
+	// =========================
 
 	log.Printf(
 		"%s API running on :%s",
