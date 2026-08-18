@@ -6,9 +6,13 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/Rakaa503/AviGo/internal/config"
+	appcontext "github.com/Rakaa503/AviGo/internal/context"
 	"github.com/Rakaa503/AviGo/internal/conversation"
 	"github.com/Rakaa503/AviGo/internal/database"
+	"github.com/Rakaa503/AviGo/internal/decision"
 	"github.com/Rakaa503/AviGo/internal/interaction"
+	"github.com/Rakaa503/AviGo/internal/orchestrator"
+	"github.com/Rakaa503/AviGo/internal/response"
 )
 
 func main() {
@@ -67,6 +71,42 @@ func main() {
 	)
 
 	// =========================
+	// Context Module
+	// =========================
+
+	contextService := appcontext.NewService(
+		conversationRepository,
+		interactionRepository,
+	)
+
+	// =========================
+	// Decision Module
+	// =========================
+
+	decisionService := decision.NewService()
+
+	// =========================
+	// Response Module
+	// =========================
+
+	responseService := response.NewService()
+
+	// =========================
+	// Orchestrator Module
+	// =========================
+
+	orchestratorService := orchestrator.NewService(
+		interactionAnalyzer,
+		contextService,
+		decisionService,
+		responseService,
+	)
+
+	orchestratorHandler := orchestrator.NewHandler(
+		orchestratorService,
+	)
+
+	// =========================
 	// API v1
 	// =========================
 
@@ -108,6 +148,15 @@ func main() {
 	api.Get(
 		"/conversations/:id/interactions",
 		interactionHandler.GetByConversationID,
+	)
+
+	// -------------------------
+	// Chat Route
+	// -------------------------
+
+	api.Post(
+		"/chat",
+		orchestratorHandler.Chat,
 	)
 
 	// =========================
