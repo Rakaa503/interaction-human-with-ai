@@ -96,10 +96,11 @@ func main() {
 	// =========================
 
 	orchestratorService := orchestrator.NewService(
-		interactionAnalyzer,
+		interactionService,
 		contextService,
 		decisionService,
 		responseService,
+		conversationService,
 	)
 
 	orchestratorHandler := orchestrator.NewHandler(

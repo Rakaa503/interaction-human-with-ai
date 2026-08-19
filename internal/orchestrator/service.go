@@ -4,29 +4,33 @@ import (
 	"fmt"
 
 	appcontext "github.com/Rakaa503/AviGo/internal/context"
+	"github.com/Rakaa503/AviGo/internal/conversation"
 	"github.com/Rakaa503/AviGo/internal/decision"
 	"github.com/Rakaa503/AviGo/internal/interaction"
 	"github.com/Rakaa503/AviGo/internal/response"
 )
 
 type Service struct {
-	interactionAnalyzer interaction.Analyzer
+	interactionService  *interaction.Service
 	contextService      *appcontext.Service
 	decisionService     *decision.Service
 	responseService     *response.Service
+	conversationService *conversation.Service
 }
 
 func NewService(
-	interactionAnalyzer interaction.Analyzer,
+	interactionService *interaction.Service,
 	contextService *appcontext.Service,
 	decisionService *decision.Service,
 	responseService *response.Service,
+	conversationService *conversation.Service,
 ) *Service {
 	return &Service{
-		interactionAnalyzer: interactionAnalyzer,
+		interactionService:  interactionService,
 		contextService:      contextService,
 		decisionService:     decisionService,
 		responseService:     responseService,
+		conversationService: conversationService,
 	}
 }
 
@@ -51,10 +55,25 @@ func (s *Service) Process(
 	}
 
 	// =========================
-	// 1. Interaction Analysis
+	// 1. Save User Message
 	// =========================
 
-	analysis, err := s.interactionAnalyzer.Analyze(input)
+	if _, err := s.conversationService.AddMessage(
+		conversationID,
+		"user",
+		input,
+	); err != nil {
+		return nil, fmt.Errorf(
+			"failed to save user message: %w",
+			err,
+		)
+	}
+
+	// =========================
+	// 2. Interaction Analysis
+	// =========================
+
+	analysis, err := s.interactionService.Analyze(input)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"interaction analysis failed: %w",
@@ -63,7 +82,7 @@ func (s *Service) Process(
 	}
 
 	// =========================
-	// 2. Build Context
+	// 3. Build Context
 	// =========================
 
 	ctx, err := s.contextService.Build(
@@ -78,7 +97,7 @@ func (s *Service) Process(
 	}
 
 	// =========================
-	// 3. Decision Engine
+	// 4. Decision Engine
 	// =========================
 
 	decisionResult := s.decisionService.Decide(
@@ -90,12 +109,13 @@ func (s *Service) Process(
 	)
 
 	// =========================
-	// 4. Response Engine
+	// 5. Response Engine
 	// =========================
 
 	responseResult, err := s.responseService.Generate(
 		string(decisionResult.Action),
 		decisionResult.Confidence,
+		ctx,
 	)
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -105,7 +125,39 @@ func (s *Service) Process(
 	}
 
 	// =========================
-	// 5. Final Result
+	// 6. Save Assistant Message
+	// =========================
+
+	if _, err := s.conversationService.AddMessage(
+		conversationID,
+		"assistant",
+		responseResult.Content,
+	); err != nil {
+		return nil, fmt.Errorf(
+			"failed to save assistant message: %w",
+			err,
+		)
+	}
+
+	// =========================
+	// 7. Save Interaction
+	// =========================
+
+	if _, err := s.interactionService.Save(
+		userID,
+		conversationID,
+		input,
+		analysis,
+		responseResult.Content,
+	); err != nil {
+		return nil, fmt.Errorf(
+			"failed to save interaction: %w",
+			err,
+		)
+	}
+
+	// =========================
+	// 8. Final Result
 	// =========================
 
 	return &Result{

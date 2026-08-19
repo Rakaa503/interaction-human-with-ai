@@ -2,11 +2,31 @@ package conversation
 
 import "fmt"
 
-type Service struct {
-	repository *Repository
+type RepositoryInterface interface {
+	CreateConversation(
+		conversation *Conversation,
+	) error
+
+	GetConversation(
+		id uint64,
+	) (*Conversation, error)
+
+	AddMessage(
+		message *Message,
+	) error
+
+	GetMessages(
+		conversationID uint64,
+	) ([]Message, error)
 }
 
-func NewService(repository *Repository) *Service {
+type Service struct {
+	repository RepositoryInterface
+}
+
+func NewService(
+	repository RepositoryInterface,
+) *Service {
 	return &Service{
 		repository: repository,
 	}
@@ -16,12 +36,15 @@ func (s *Service) CreateConversation(
 	userID uint64,
 	title *string,
 ) (*Conversation, error) {
+
 	conversation := &Conversation{
 		UserID: userID,
 		Title:  title,
 	}
 
-	if err := s.repository.CreateConversation(conversation); err != nil {
+	if err := s.repository.CreateConversation(
+		conversation,
+	); err != nil {
 		return nil, err
 	}
 
@@ -33,6 +56,7 @@ func (s *Service) AddMessage(
 	role string,
 	content string,
 ) (*Message, error) {
+
 	if role != "system" &&
 		role != "user" &&
 		role != "assistant" {
@@ -40,7 +64,9 @@ func (s *Service) AddMessage(
 	}
 
 	if content == "" {
-		return nil, fmt.Errorf("message content cannot be empty")
+		return nil, fmt.Errorf(
+			"message content cannot be empty",
+		)
 	}
 
 	message := &Message{

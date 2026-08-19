@@ -23,19 +23,39 @@ func NewService(
 	}
 }
 
-func (s *Service) Process(
+// Analyze menjalankan analyzer tanpa menyimpan interaction.
+func (s *Service) Analyze(
+	input string,
+) (*AnalysisResult, error) {
+
+	if input == "" {
+		return nil, fmt.Errorf(
+			"interaction input cannot be empty",
+		)
+	}
+
+	return s.analyzer.Analyze(input)
+}
+
+// Save menyimpan hasil analysis menjadi interaction.
+func (s *Service) Save(
 	userID uint64,
 	conversationID uint64,
 	input string,
+	result *AnalysisResult,
+	response string,
 ) (*Interaction, error) {
 
 	if input == "" {
-		return nil, fmt.Errorf("interaction input cannot be empty")
+		return nil, fmt.Errorf(
+			"interaction input cannot be empty",
+		)
 	}
 
-	result, err := s.analyzer.Analyze(input)
-	if err != nil {
-		return nil, err
+	if result == nil {
+		return nil, fmt.Errorf(
+			"analysis result cannot be nil",
+		)
 	}
 
 	interaction := &Interaction{
@@ -48,11 +68,36 @@ func (s *Service) Process(
 		Confidence:     &result.Confidence,
 	}
 
+	if response != "" {
+		interaction.Response = &response
+	}
+
 	if err := s.repository.Create(interaction); err != nil {
 		return nil, err
 	}
 
 	return interaction, nil
+}
+
+// Process menjalankan analysis sekaligus menyimpan interaction.
+func (s *Service) Process(
+	userID uint64,
+	conversationID uint64,
+	input string,
+) (*Interaction, error) {
+
+	result, err := s.Analyze(input)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.Save(
+		userID,
+		conversationID,
+		input,
+		result,
+		"",
+	)
 }
 
 func (s *Service) GetByID(

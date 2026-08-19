@@ -31,7 +31,41 @@ func (m *mockConversationRepository) GetMessages(
 	return []conversation.Message{}, nil
 }
 
+func (m *mockConversationRepository) CreateConversation(
+	conversation *conversation.Conversation,
+) error {
+	return nil
+}
+
+func (m *mockConversationRepository) GetConversation(
+	id uint64,
+) (*conversation.Conversation, error) {
+	return &conversation.Conversation{
+		ID: id,
+	}, nil
+}
+
+func (m *mockConversationRepository) AddMessage(
+	message *conversation.Message,
+) error {
+	return nil
+}
+
 type mockInteractionRepository struct{}
+
+func (m *mockInteractionRepository) Create(
+	interaction *interaction.Interaction,
+) error {
+	return nil
+}
+
+func (m *mockInteractionRepository) GetByID(
+	id uint64,
+) (*interaction.Interaction, error) {
+	return &interaction.Interaction{
+		ID: id,
+	}, nil
+}
 
 func (m *mockInteractionRepository) GetByConversationID(
 	conversationID uint64,
@@ -39,22 +73,38 @@ func (m *mockInteractionRepository) GetByConversationID(
 	return []interaction.Interaction{}, nil
 }
 
-func TestOrchestrator(t *testing.T) {
+func newTestOrchestrator() *Service {
+	conversationRepository := &mockConversationRepository{}
+	interactionRepository := &mockInteractionRepository{}
+
+	conversationService := conversation.NewService(
+		conversationRepository,
+	)
+
+	interactionService := interaction.NewService(
+		interactionRepository,
+		&mockAnalyzer{},
+	)
+
 	contextService := appcontext.NewService(
-		&mockConversationRepository{},
-		&mockInteractionRepository{},
+		conversationRepository,
+		interactionRepository,
 	)
 
 	decisionService := decision.NewService()
 	responseService := response.NewService()
-	analyzer := &mockAnalyzer{}
 
-	service := NewService(
-		analyzer,
+	return NewService(
+		interactionService,
 		contextService,
 		decisionService,
 		responseService,
+		conversationService,
 	)
+}
+
+func TestOrchestrator(t *testing.T) {
+	service := newTestOrchestrator()
 
 	result, err := service.Process(
 		3,
@@ -86,17 +136,7 @@ func TestOrchestrator(t *testing.T) {
 }
 
 func TestOrchestratorEmptyInput(t *testing.T) {
-	contextService := appcontext.NewService(
-		&mockConversationRepository{},
-		&mockInteractionRepository{},
-	)
-
-	service := NewService(
-		&mockAnalyzer{},
-		contextService,
-		decision.NewService(),
-		response.NewService(),
-	)
+	service := newTestOrchestrator()
 
 	_, err := service.Process(
 		3,
