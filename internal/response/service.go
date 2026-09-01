@@ -19,16 +19,11 @@ func (s *Service) Generate(
 	ctx *appcontext.MessageContext,
 ) (*Response, error) {
 
-	if action == "" {
-		return nil, fmt.Errorf(
-			"response action cannot be empty",
-		)
+	if strings.TrimSpace(action) == "" {
+		return nil, fmt.Errorf("response action cannot be empty")
 	}
 
-	content := s.generateContent(
-		action,
-		ctx,
-	)
+	content := s.generateContent(action, ctx)
 
 	return &Response{
 		Action:     action,
@@ -48,12 +43,8 @@ func (s *Service) generateContent(
 		return "Halo! 👋 Ada yang bisa AVIGO bantu?"
 
 	case ActionAnswerQuestion:
-
 		if name := extractNameFromContext(ctx); name != "" {
-			return fmt.Sprintf(
-				"Nama kamu %s.",
-				name,
-			)
+			return fmt.Sprintf("Nama kamu %s.", name)
 		}
 
 		return "Tentu, saya akan membantu menjawab pertanyaan kamu."
@@ -75,25 +66,22 @@ func (s *Service) generateContent(
 	}
 }
 
-// =========================
-// Memory Extraction
-// =========================
+// =========================================================
+// MEMORY EXTRACTION
+// =========================================================
 
 func extractNameFromContext(
 	ctx *appcontext.MessageContext,
 ) string {
 
-	if ctx == nil {
+	if ctx == nil || len(ctx.RecentMessages) == 0 {
 		return ""
 	}
 
-	// Cari dari pesan user paling baru menuju pesan lama.
 	for i := len(ctx.RecentMessages) - 1; i >= 0; i-- {
 
 		message := ctx.RecentMessages[i]
 
-		// Role dibuat case-insensitive supaya
-		// "user", "User", dan "USER" tetap terbaca.
 		if !strings.EqualFold(
 			strings.TrimSpace(message.Role),
 			"user",
@@ -107,9 +95,7 @@ func extractNameFromContext(
 			continue
 		}
 
-		name := extractName(text)
-
-		if name != "" {
+		if name := extractName(text); name != "" {
 			return name
 		}
 	}
@@ -117,13 +103,18 @@ func extractNameFromContext(
 	return ""
 }
 
-// extractName mencoba beberapa pola kalimat
-// yang umum digunakan ketika user memperkenalkan
-// namanya.
+// =========================================================
+// NAME EXTRACTION
+// =========================================================
 
 func extractName(text string) string {
 
 	original := strings.TrimSpace(text)
+
+	if original == "" {
+		return ""
+	}
+
 	lower := strings.ToLower(original)
 
 	prefixes := []string{
@@ -132,13 +123,12 @@ func extractName(text string) string {
 		"nama gue ",
 		"nama gua ",
 		"nama gw ",
+
 		"saya bernama ",
 		"aku bernama ",
 		"gue bernama ",
 		"gua bernama ",
 		"gw bernama ",
-		"saya ",
-		"aku ",
 	}
 
 	for _, prefix := range prefixes {
@@ -151,18 +141,93 @@ func extractName(text string) string {
 			original[len(prefix):],
 		)
 
-		name = cleanName(name)
+		return extractNamePart(name)
+	}
 
-		if name != "" {
-			return name
+	shortPrefixes := []string{
+		"saya ",
+		"aku ",
+		"gue ",
+		"gua ",
+		"gw ",
+	}
+
+	for _, prefix := range shortPrefixes {
+
+		if !strings.HasPrefix(lower, prefix) {
+			continue
 		}
+
+		name := strings.TrimSpace(
+			original[len(prefix):],
+		)
+
+		if name == "" {
+			return ""
+		}
+
+		firstWord := strings.Fields(name)[0]
+
+		if isBlockedWord(firstWord) {
+			return ""
+		}
+
+		return extractNamePart(name)
 	}
 
 	return ""
 }
 
-// cleanName membersihkan bagian tambahan
-// dari kalimat setelah nama.
+// =========================================================
+// NAME PART
+// =========================================================
+
+func extractNamePart(text string) string {
+
+	text = strings.TrimSpace(text)
+
+	if text == "" {
+		return ""
+	}
+
+	lower := strings.ToLower(text)
+
+	stopWords := []string{
+		" saya ",
+		" aku ",
+		" gue ",
+		" gua ",
+		" gw ",
+		" dan ",
+		" karena ",
+		" yang ",
+		" sedang ",
+		" lagi ",
+		" adalah ",
+		" merupakan ",
+	}
+
+	cutIndex := len(text)
+
+	for _, word := range stopWords {
+
+		if index := strings.Index(lower, word); index >= 0 {
+			if index < cutIndex {
+				cutIndex = index
+			}
+		}
+	}
+
+	text = strings.TrimSpace(
+		text[:cutIndex],
+	)
+
+	return cleanName(text)
+}
+
+// =========================================================
+// CLEAN NAME
+// =========================================================
 
 func cleanName(name string) string {
 
@@ -172,7 +237,6 @@ func cleanName(name string) string {
 		return ""
 	}
 
-	// Buang tanda baca di akhir.
 	name = strings.TrimRight(
 		name,
 		".,!?;:",
@@ -184,14 +248,6 @@ func cleanName(name string) string {
 		return ""
 	}
 
-	// Jangan menganggap kalimat panjang sebagai nama.
-	//
-	// Contoh:
-	// "saya sedang membuat AI"
-	//
-	// Tidak seharusnya seluruh kalimat dianggap
-	// sebagai nama.
-
 	words := strings.Fields(name)
 
 	if len(words) > 4 {
@@ -199,4 +255,35 @@ func cleanName(name string) string {
 	}
 
 	return name
+}
+
+// =========================================================
+// BLOCKED WORD
+// =========================================================
+
+func isBlockedWord(word string) bool {
+
+	word = strings.ToLower(
+		strings.TrimSpace(word),
+	)
+
+	switch word {
+
+	case "sedang",
+		"lagi",
+		"membuat",
+		"ingin",
+		"mau",
+		"adalah",
+		"merupakan",
+		"tidak",
+		"bukan",
+		"suka",
+		"punya",
+		"memiliki":
+
+		return true
+	}
+
+	return false
 }
