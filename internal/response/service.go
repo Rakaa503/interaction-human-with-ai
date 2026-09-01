@@ -49,10 +49,10 @@ func (s *Service) generateContent(
 
 	case ActionAnswerQuestion:
 
-		if answer := extractNameFromContext(ctx); answer != "" {
+		if name := extractNameFromContext(ctx); name != "" {
 			return fmt.Sprintf(
 				"Nama kamu %s.",
-				answer,
+				name,
 			)
 		}
 
@@ -75,6 +75,10 @@ func (s *Service) generateContent(
 	}
 }
 
+// =========================
+// Memory Extraction
+// =========================
+
 func extractNameFromContext(
 	ctx *appcontext.MessageContext,
 ) string {
@@ -83,38 +87,116 @@ func extractNameFromContext(
 		return ""
 	}
 
+	// Cari dari pesan user paling baru menuju pesan lama.
 	for i := len(ctx.RecentMessages) - 1; i >= 0; i-- {
 
 		message := ctx.RecentMessages[i]
 
-		if message.Role != "user" {
+		// Role dibuat case-insensitive supaya
+		// "user", "User", dan "USER" tetap terbaca.
+		if !strings.EqualFold(
+			strings.TrimSpace(message.Role),
+			"user",
+		) {
 			continue
 		}
 
 		text := strings.TrimSpace(message.Content)
-		lower := strings.ToLower(text)
 
-		prefixes := []string{
-			"nama saya ",
-			"nama aku ",
-			"saya bernama ",
-			"aku bernama ",
+		if text == "" {
+			continue
 		}
 
-		for _, prefix := range prefixes {
+		name := extractName(text)
 
-			if strings.HasPrefix(lower, prefix) {
-
-				name := strings.TrimSpace(
-					text[len(prefix):],
-				)
-
-				if name != "" {
-					return name
-				}
-			}
+		if name != "" {
+			return name
 		}
 	}
 
 	return ""
+}
+
+// extractName mencoba beberapa pola kalimat
+// yang umum digunakan ketika user memperkenalkan
+// namanya.
+
+func extractName(text string) string {
+
+	original := strings.TrimSpace(text)
+	lower := strings.ToLower(original)
+
+	prefixes := []string{
+		"nama saya ",
+		"nama aku ",
+		"nama gue ",
+		"nama gua ",
+		"nama gw ",
+		"saya bernama ",
+		"aku bernama ",
+		"gue bernama ",
+		"gua bernama ",
+		"gw bernama ",
+		"saya ",
+		"aku ",
+	}
+
+	for _, prefix := range prefixes {
+
+		if !strings.HasPrefix(lower, prefix) {
+			continue
+		}
+
+		name := strings.TrimSpace(
+			original[len(prefix):],
+		)
+
+		name = cleanName(name)
+
+		if name != "" {
+			return name
+		}
+	}
+
+	return ""
+}
+
+// cleanName membersihkan bagian tambahan
+// dari kalimat setelah nama.
+
+func cleanName(name string) string {
+
+	name = strings.TrimSpace(name)
+
+	if name == "" {
+		return ""
+	}
+
+	// Buang tanda baca di akhir.
+	name = strings.TrimRight(
+		name,
+		".,!?;:",
+	)
+
+	name = strings.TrimSpace(name)
+
+	if name == "" {
+		return ""
+	}
+
+	// Jangan menganggap kalimat panjang sebagai nama.
+	//
+	// Contoh:
+	// "saya sedang membuat AI"
+	//
+	// Tidak seharusnya seluruh kalimat dianggap
+	// sebagai nama.
+
+	words := strings.Fields(name)
+
+	if len(words) > 4 {
+		return ""
+	}
+
+	return name
 }
