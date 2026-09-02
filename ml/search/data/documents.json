@@ -1,0 +1,32 @@
+[
+  {
+    "id": "doc-001",
+    "title": "Machine Learning",
+    "url": "https://en.wikipedia.org/wiki/Machine_learning",
+    "content": "Machine learning is a field of artificial intelligence that uses algorithms to learn patterns from data and make predictions or decisions."
+  },
+  {
+    "id": "doc-002",
+    "title": "Artificial Intelligence",
+    "url": "https://en.wikipedia.org/wiki/Artificial_intelligence",
+    "content": "Artificial intelligence is the field of building computer systems that can perform tasks that normally require human intelligence, including reasoning, learning, and problem solving."
+  },
+  {
+    "id": "doc-003",
+    "title": "Go Programming Language",
+    "url": "https://go.dev/",
+    "content": "Go is a programming language designed at Google. Go is used to build reliable, efficient, and scalable software and network services."
+  },
+  {
+    "id": "doc-004",
+    "title": "Computer Vision",
+    "url": "https://en.wikipedia.org/wiki/Computer_vision",
+    "content": "Computer vision is a field of artificial intelligence that enables computers to interpret and understand visual information from images and videos."
+  },
+  {
+    "id": "doc-005",
+    "title": "Information Retrieval",
+    "url": "https://en.wikipedia.org/wiki/Information_retrieval",
+    "content": "Information retrieval is the process of finding relevant information from a collection of documents based on a user's query."
+  }
+]
