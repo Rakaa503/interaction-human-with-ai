@@ -1,0 +1,22 @@
+[
+  {
+    "query": "what is machine learning",
+    "relevant_documents": ["Machine Learning"]
+  },
+  {
+    "query": "what is artificial intelligence",
+    "relevant_documents": ["Artificial Intelligence"]
+  },
+  {
+    "query": "programming language developed by Google",
+    "relevant_documents": ["Go Programming Language"]
+  },
+  {
+    "query": "what is computer vision",
+    "relevant_documents": ["Computer Vision"]
+  },
+  {
+    "query": "what is information retrieval",
+    "relevant_documents": ["Information Retrieval"]
+  }
+]
