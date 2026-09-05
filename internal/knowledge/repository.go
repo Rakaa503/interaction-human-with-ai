@@ -2,6 +2,12 @@ package knowledge
 
 import "gorm.io/gorm"
 
+type RepositoryInterface interface {
+	Create(document *Document) error
+	FindByHash(hash string) (*Document, error)
+	FindAll() ([]Document, error)
+}
+
 type Repository struct {
 	db *gorm.DB
 }

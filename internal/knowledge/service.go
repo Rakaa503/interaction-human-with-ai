@@ -13,10 +13,10 @@ var (
 )
 
 type Service struct {
-	repository *Repository
+	repository RepositoryInterface
 }
 
-func NewService(repository *Repository) *Service {
+func NewService(repository RepositoryInterface) *Service {
 	return &Service{
 		repository: repository,
 	}
