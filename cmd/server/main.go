@@ -11,6 +11,7 @@ import (
 	"github.com/Rakaa503/AviGo/internal/database"
 	"github.com/Rakaa503/AviGo/internal/decision"
 	"github.com/Rakaa503/AviGo/internal/interaction"
+	"github.com/Rakaa503/AviGo/internal/knowledge"
 	"github.com/Rakaa503/AviGo/internal/orchestrator"
 	"github.com/Rakaa503/AviGo/internal/response"
 )
@@ -92,6 +93,20 @@ func main() {
 	responseService := response.NewService()
 
 	// =========================
+	// Knowledge Module
+	// =========================
+
+	knowledgeRepository := knowledge.NewRepository(db)
+
+	knowledgeService := knowledge.NewService(
+		knowledgeRepository,
+	)
+
+	knowledgeHandler := knowledge.NewHandler(
+		knowledgeService,
+	)
+
+	// =========================
 	// Orchestrator Module
 	// =========================
 
@@ -149,6 +164,20 @@ func main() {
 	api.Get(
 		"/conversations/:id/interactions",
 		interactionHandler.GetByConversationID,
+	)
+
+	// -------------------------
+	// Knowledge Routes
+	// -------------------------
+
+	api.Post(
+		"/knowledge",
+		knowledgeHandler.CreateDocument,
+	)
+
+	api.Get(
+		"/knowledge",
+		knowledgeHandler.GetDocuments,
 	)
 
 	// -------------------------

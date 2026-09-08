@@ -64,3 +64,7 @@ func (s *Service) AddDocument(
 
 	return document, nil
 }
+
+func (s *Service) GetAllDocuments() ([]Document, error) {
+	return s.repository.FindAll()
+}
