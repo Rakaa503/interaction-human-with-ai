@@ -1,0 +1,50 @@
+﻿[
+    {
+        "query": "teknologi yang membuat komputer belajar dari data",
+        "relevant": ["Machine Learning"]
+    },
+    {
+        "query": "teknologi yang membuat mesin menjadi cerdas",
+        "relevant": ["Artificial Intelligence", "Machine Learning"]
+    },
+    {
+        "query": "teknologi agar komputer bisa melihat dan mengenali gambar",
+        "relevant": ["Computer Vision"]
+    },
+    {
+        "query": "teknologi agar komputer memahami bahasa manusia",
+        "relevant": ["Natural Language Processing"]
+    },
+    {
+        "query": "pembelajaran mesin menggunakan jaringan saraf",
+        "relevant": ["Deep Learning", "Machine Learning"]
+    },
+    {
+        "query": "bahasa pemrograman yang dikembangkan oleh Google",
+        "relevant": ["Go Programming Language"]
+    },
+    {
+        "query": "tempat untuk menyimpan data secara terstruktur",
+        "relevant": ["Database"]
+    },
+    {
+        "query": "proses menemukan informasi yang sesuai dari dokumen",
+        "relevant": ["Information Retrieval"]
+    },
+    {
+        "query": "bagaimana AI memahami percakapan manusia",
+        "relevant": ["Natural Language Processing", "Artificial Intelligence"]
+    },
+    {
+        "query": "bagaimana komputer belajar mengenali pola tanpa diprogram secara langsung",
+        "relevant": ["Machine Learning", "Deep Learning"]
+    },
+    {
+        "query": "teknologi untuk mengenali objek dalam foto",
+        "relevant": ["Computer Vision"]
+    },
+    {
+        "query": "sistem untuk mencari informasi dari banyak dokumen",
+        "relevant": ["Information Retrieval"]
+    }
+]

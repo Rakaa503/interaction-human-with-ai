@@ -1,22 +1,42 @@
-[
-  {
-    "query": "what is machine learning",
-    "relevant_documents": ["Machine Learning"]
-  },
-  {
-    "query": "what is artificial intelligence",
-    "relevant_documents": ["Artificial Intelligence"]
-  },
-  {
-    "query": "programming language developed by Google",
-    "relevant_documents": ["Go Programming Language"]
-  },
-  {
-    "query": "what is computer vision",
-    "relevant_documents": ["Computer Vision"]
-  },
-  {
-    "query": "what is information retrieval",
-    "relevant_documents": ["Information Retrieval"]
-  }
+﻿[
+    {
+        "query": "what is machine learning",
+        "relevant": ["Machine Learning"]
+    },
+    {
+        "query": "jelaskan tentang artificial intelligence",
+        "relevant": ["Artificial Intelligence"]
+    },
+    {
+        "query": "bagaimana komputer memahami gambar",
+        "relevant": ["Computer Vision"]
+    },
+    {
+        "query": "apa itu pemrosesan bahasa manusia",
+        "relevant": ["Natural Language Processing"]
+    },
+    {
+        "query": "apa hubungan neural network dengan machine learning",
+        "relevant": ["Deep Learning", "Machine Learning"]
+    },
+    {
+        "query": "bahasa pemrograman dari Google",
+        "relevant": ["Go Programming Language"]
+    },
+    {
+        "query": "sistem untuk menyimpan dan mengambil data",
+        "relevant": ["Database"]
+    },
+    {
+        "query": "bagaimana mencari informasi dari kumpulan dokumen",
+        "relevant": ["Information Retrieval"]
+    },
+    {
+        "query": "apa itu semantic search",
+        "relevant": []
+    },
+    {
+        "query": "bagaimana cara membuat aplikasi mobile banking",
+        "relevant": []
+    }
 ]
