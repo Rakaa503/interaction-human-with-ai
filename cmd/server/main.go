@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/Rakaa503/AviGo/internal/ai"
 	"github.com/Rakaa503/AviGo/internal/config"
 	appcontext "github.com/Rakaa503/AviGo/internal/context"
 	"github.com/Rakaa503/AviGo/internal/conversation"
@@ -87,10 +88,22 @@ func main() {
 	decisionService := decision.NewService()
 
 	// =========================
+	// AI Module
+	// =========================
+
+	aiProvider := ai.NewMockProvider()
+
+	aiService := ai.NewService(
+		aiProvider,
+	)
+
+	// =========================
 	// Response Module
 	// =========================
 
-	responseService := response.NewService()
+	responseService := response.NewService(
+		aiService,
+	)
 
 	// =========================
 	// Knowledge Module

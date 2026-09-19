@@ -68,3 +68,44 @@ func TestDecisionEngine(t *testing.T) {
 		})
 	}
 }
+
+func TestDecisionEngineActivityMemoryQuestion(t *testing.T) {
+	service := NewService()
+
+	ctx := &context.MessageContext{
+		RecentMessages: []context.MessageSnapshot{
+			{
+				Role:    "user",
+				Content: "Saya sedang belajar machine learning",
+			},
+			{
+				Role:    "assistant",
+				Content: "Baik.",
+			},
+			{
+				Role:    "user",
+				Content: "Apa yang sedang saya pelajari?",
+			},
+		},
+	}
+
+	result := service.Decide(
+		"general",
+		"neutral",
+		"general",
+		0.30,
+		ctx,
+	)
+
+	if result == nil {
+		t.Fatal("expected decision, got nil")
+	}
+
+	if result.Action != ActionAnswerQuestion {
+		t.Fatalf(
+			"expected action %q, got %q",
+			ActionAnswerQuestion,
+			result.Action,
+		)
+	}
+}

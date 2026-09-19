@@ -145,6 +145,32 @@ func isMemoryQuestion(
 			return true
 		}
 
+		// Pertanyaan tentang aktivitas belajar user.
+		if containsAny(text,
+			"apa yang sedang saya pelajari",
+			"apa yang sedang aku pelajari",
+			"apa yang sedang gue pelajari",
+			"apa yang sedang gua pelajari",
+			"apa yang sedang gw pelajari",
+			"apa yang saya pelajari",
+			"apa yang aku pelajari",
+			"apa yang gue pelajari",
+			"apa yang gua pelajari",
+			"apa yang gw pelajari",
+			"saya sedang belajar apa",
+			"aku sedang belajar apa",
+			"gue sedang belajar apa",
+			"gua sedang belajar apa",
+			"gw sedang belajar apa",
+			"saya lagi belajar apa",
+			"aku lagi belajar apa",
+			"gue lagi belajar apa",
+			"gua lagi belajar apa",
+			"gw lagi belajar apa",
+		) {
+			return true
+		}
+
 		// Cukup periksa pesan user terbaru.
 		return false
 	}

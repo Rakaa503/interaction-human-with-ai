@@ -1,289 +1,193 @@
 package response
 
 import (
-	"fmt"
-	"strings"
+	"testing"
 
 	appcontext "github.com/Rakaa503/AviGo/internal/context"
 )
 
-type Service struct{}
+func TestResponseService(t *testing.T) {
+	service := NewService()
 
-func NewService() *Service {
-	return &Service{}
-}
-
-func (s *Service) Generate(
-	action string,
-	confidence float64,
-	ctx *appcontext.MessageContext,
-) (*Response, error) {
-
-	if strings.TrimSpace(action) == "" {
-		return nil, fmt.Errorf("response action cannot be empty")
+	tests := []struct {
+		name   string
+		action string
+		want   string
+	}{
+		{
+			name:   "greeting",
+			action: ActionGreeting,
+			want:   "Halo! 👋 Ada yang bisa AVIGO bantu?",
+		},
+		{
+			name:   "question",
+			action: ActionAnswerQuestion,
+			want:   "Tentu, saya akan membantu menjawab pertanyaan kamu.",
+		},
+		{
+			name:   "problem solving",
+			action: ActionSolveProblem,
+			want:   "Baik, saya akan membantu menganalisis dan menyelesaikan masalah kamu.",
+		},
+		{
+			name:   "request",
+			action: ActionExecuteRequest,
+			want:   "Siap, saya akan membantu mengerjakan permintaan kamu.",
+		},
+		{
+			name:   "general",
+			action: ActionGeneralConversation,
+			want:   "Baik, mari kita lanjutkan percakapannya.",
+		},
+		{
+			name:   "clarify",
+			action: ActionClarify,
+			want:   "Boleh jelaskan lebih detail supaya saya bisa membantu dengan tepat?",
+		},
 	}
 
-	content := s.generateContent(action, ctx)
+	ctx := &appcontext.MessageContext{}
 
-	return &Response{
-		Action:     action,
-		Content:    content,
-		Confidence: confidence,
-	}, nil
-}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := service.Generate(
+				tt.action,
+				0.90,
+				ctx,
+			)
 
-func (s *Service) generateContent(
-	action string,
-	ctx *appcontext.MessageContext,
-) string {
-
-	switch action {
-
-	case ActionGreeting:
-		return "Halo! 👋 Ada yang bisa AVIGO bantu?"
-
-	case ActionAnswerQuestion:
-		if name := extractNameFromContext(ctx); name != "" {
-			return fmt.Sprintf("Nama kamu %s.", name)
-		}
-
-		return "Tentu, saya akan membantu menjawab pertanyaan kamu."
-
-	case ActionSolveProblem:
-		return "Baik, saya akan membantu menganalisis dan menyelesaikan masalah kamu."
-
-	case ActionExecuteRequest:
-		return "Siap, saya akan membantu mengerjakan permintaan kamu."
-
-	case ActionGeneralConversation:
-		return "Baik, mari kita lanjutkan percakapannya."
-
-	case ActionClarify:
-		return "Boleh jelaskan lebih detail supaya saya bisa membantu dengan tepat?"
-
-	default:
-		return "Saya belum memahami tindakan yang harus dilakukan."
-	}
-}
-
-// =========================================================
-// MEMORY EXTRACTION
-// =========================================================
-
-func extractNameFromContext(
-	ctx *appcontext.MessageContext,
-) string {
-
-	if ctx == nil || len(ctx.RecentMessages) == 0 {
-		return ""
-	}
-
-	for i := len(ctx.RecentMessages) - 1; i >= 0; i-- {
-
-		message := ctx.RecentMessages[i]
-
-		if !strings.EqualFold(
-			strings.TrimSpace(message.Role),
-			"user",
-		) {
-			continue
-		}
-
-		text := strings.TrimSpace(message.Content)
-
-		if text == "" {
-			continue
-		}
-
-		if name := extractName(text); name != "" {
-			return name
-		}
-	}
-
-	return ""
-}
-
-// =========================================================
-// NAME EXTRACTION
-// =========================================================
-
-func extractName(text string) string {
-
-	original := strings.TrimSpace(text)
-
-	if original == "" {
-		return ""
-	}
-
-	lower := strings.ToLower(original)
-
-	prefixes := []string{
-		"nama saya ",
-		"nama aku ",
-		"nama gue ",
-		"nama gua ",
-		"nama gw ",
-
-		"saya bernama ",
-		"aku bernama ",
-		"gue bernama ",
-		"gua bernama ",
-		"gw bernama ",
-	}
-
-	for _, prefix := range prefixes {
-
-		if !strings.HasPrefix(lower, prefix) {
-			continue
-		}
-
-		name := strings.TrimSpace(
-			original[len(prefix):],
-		)
-
-		return extractNamePart(name)
-	}
-
-	shortPrefixes := []string{
-		"saya ",
-		"aku ",
-		"gue ",
-		"gua ",
-		"gw ",
-	}
-
-	for _, prefix := range shortPrefixes {
-
-		if !strings.HasPrefix(lower, prefix) {
-			continue
-		}
-
-		name := strings.TrimSpace(
-			original[len(prefix):],
-		)
-
-		if name == "" {
-			return ""
-		}
-
-		firstWord := strings.Fields(name)[0]
-
-		if isBlockedWord(firstWord) {
-			return ""
-		}
-
-		return extractNamePart(name)
-	}
-
-	return ""
-}
-
-// =========================================================
-// NAME PART
-// =========================================================
-
-func extractNamePart(text string) string {
-
-	text = strings.TrimSpace(text)
-
-	if text == "" {
-		return ""
-	}
-
-	lower := strings.ToLower(text)
-
-	stopWords := []string{
-		" saya ",
-		" aku ",
-		" gue ",
-		" gua ",
-		" gw ",
-		" dan ",
-		" karena ",
-		" yang ",
-		" sedang ",
-		" lagi ",
-		" adalah ",
-		" merupakan ",
-	}
-
-	cutIndex := len(text)
-
-	for _, word := range stopWords {
-
-		if index := strings.Index(lower, word); index >= 0 {
-			if index < cutIndex {
-				cutIndex = index
+			if err != nil {
+				t.Fatalf(
+					"unexpected error: %v",
+					err,
+				)
 			}
-		}
+
+			if result.Action != tt.action {
+				t.Fatalf(
+					"expected action %q, got %q",
+					tt.action,
+					result.Action,
+				)
+			}
+
+			if result.Content != tt.want {
+				t.Fatalf(
+					"expected content %q, got %q",
+					tt.want,
+					result.Content,
+				)
+			}
+
+			if result.Confidence != 0.90 {
+				t.Fatalf(
+					"expected confidence 0.90, got %f",
+					result.Confidence,
+				)
+			}
+		})
 	}
-
-	text = strings.TrimSpace(
-		text[:cutIndex],
-	)
-
-	return cleanName(text)
 }
 
-// =========================================================
-// CLEAN NAME
-// =========================================================
+func TestResponseServiceEmptyAction(t *testing.T) {
+	service := NewService()
 
-func cleanName(name string) string {
+	ctx := &appcontext.MessageContext{}
 
-	name = strings.TrimSpace(name)
-
-	if name == "" {
-		return ""
-	}
-
-	name = strings.TrimRight(
-		name,
-		".,!?;:",
+	_, err := service.Generate(
+		"",
+		0.90,
+		ctx,
 	)
 
-	name = strings.TrimSpace(name)
-
-	if name == "" {
-		return ""
+	if err == nil {
+		t.Fatal("expected error for empty action")
 	}
-
-	words := strings.Fields(name)
-
-	if len(words) > 4 {
-		return ""
-	}
-
-	return name
 }
 
-// =========================================================
-// BLOCKED WORD
-// =========================================================
+func TestResponseServiceMemory(t *testing.T) {
+	service := NewService()
 
-func isBlockedWord(word string) bool {
-
-	word = strings.ToLower(
-		strings.TrimSpace(word),
-	)
-
-	switch word {
-
-	case "sedang",
-		"lagi",
-		"membuat",
-		"ingin",
-		"mau",
-		"adalah",
-		"merupakan",
-		"tidak",
-		"bukan",
-		"suka",
-		"punya",
-		"memiliki":
-
-		return true
+	ctx := &appcontext.MessageContext{
+		RecentMessages: []appcontext.MessageSnapshot{
+			{
+				Role:    "user",
+				Content: "Nama saya Rakha",
+			},
+		},
 	}
 
-	return false
+	result, err := service.Generate(
+		ActionAnswerQuestion,
+		0.90,
+		ctx,
+	)
+
+	if err != nil {
+		t.Fatalf(
+			"unexpected error: %v",
+			err,
+		)
+	}
+
+	expected := "Nama kamu Rakha."
+
+	if result.Content == "Nama kamu Nama saya Rakha." {
+		t.Fatalf(
+			"memory extraction returned incorrect duplicated name: %q",
+			result.Content,
+		)
+	}
+
+	if result.Content != expected {
+		t.Fatalf(
+			"expected memory response %q, got %q",
+			expected,
+			result.Content,
+		)
+	}
+}
+
+func TestResponseServiceActivityMemory(t *testing.T) {
+	service := NewService()
+
+	ctx := &appcontext.MessageContext{
+		RecentMessages: []appcontext.MessageSnapshot{
+			{
+				Role:    "user",
+				Content: "Saya sedang belajar machine learning",
+			},
+			{
+				Role:    "assistant",
+				Content: "Baik, semangat belajar.",
+			},
+			{
+				Role:    "user",
+				Content: "Apa yang sedang saya pelajari?",
+			},
+		},
+	}
+
+	result, err := service.Generate(
+		ActionAnswerQuestion,
+		0.30,
+		ctx,
+	)
+
+	if err != nil {
+		t.Fatalf(
+			"unexpected error: %v",
+			err,
+		)
+	}
+
+	expected := "Kamu sedang belajar machine learning."
+
+	if result.Content != expected {
+		t.Fatalf(
+			"expected activity memory response %q, got %q",
+			expected,
+			result.Content,
+		)
+	}
 }
