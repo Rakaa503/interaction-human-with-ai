@@ -1,3 +1,4 @@
+
 import requests
 
 from ml.search.semantic.embedder import SemanticEmbedder
@@ -17,11 +18,9 @@ class KnowledgeRetriever:
             self.api_url,
             timeout=10,
         )
-
         response.raise_for_status()
 
         payload = response.json()
-
         return payload.get("data", [])
 
     def search(
@@ -29,7 +28,6 @@ class KnowledgeRetriever:
         query: str,
         top_k: int = 5,
     ) -> list[dict]:
-
         query = query.strip()
 
         if not query:
@@ -41,7 +39,6 @@ class KnowledgeRetriever:
             return []
 
         query_vector = self.embedder.encode(query)
-
         results = []
 
         for document in documents:
@@ -68,7 +65,7 @@ class KnowledgeRetriever:
                     "url": document.get("URL"),
                     "source": document.get("Source"),
                     "category": document.get("Category"),
-                    "score": score,
+                    "score": float(score),
                 }
             )
 

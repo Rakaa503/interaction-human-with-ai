@@ -31,7 +31,6 @@ func (s *Service) Generate(
 	confidence float64,
 	ctx *appcontext.MessageContext,
 ) (*Response, error) {
-
 	if strings.TrimSpace(action) == "" {
 		return nil, fmt.Errorf("response action cannot be empty")
 	}
@@ -54,17 +53,24 @@ func (s *Service) generateContent(
 ) (string, error) {
 
 	// =========================================================
-	// MEMORY HAS PRIORITY
+	// MATHEMATICAL REASONING
+	// =========================================================
+
+	// Prioritaskan penyelesaian cosine similarity jika input
+	// pengguna berisi permintaan dan dua vektor yang valid.
+	if answer, handled := solveCosineSimilarityFromContext(ctx); handled {
+		return answer, nil
+	}
+
+	// =========================================================
+	// MEMORY
 	// =========================================================
 
 	if action == ActionAnswerQuestion {
-
-		// NAME MEMORY
 		if name := extractNameFromContext(ctx); name != "" {
 			return fmt.Sprintf("Nama kamu %s.", name), nil
 		}
 
-		// ACTIVITY MEMORY
 		if activity := memory.ExtractActivity(ctx); activity != nil {
 			return fmt.Sprintf(
 				"Kamu sedang belajar %s.",
@@ -89,7 +95,6 @@ func (s *Service) generateContent(
 			if err == nil &&
 				aiResponse != nil &&
 				strings.TrimSpace(aiResponse.Content) != "" {
-
 				return aiResponse.Content, nil
 			}
 		}
@@ -127,7 +132,6 @@ func buildAIInput(
 	action string,
 	ctx *appcontext.MessageContext,
 ) string {
-
 	if ctx == nil || len(ctx.RecentMessages) == 0 {
 		return ""
 	}
@@ -163,7 +167,6 @@ func buildAIInput(
 func extractNameFromContext(
 	ctx *appcontext.MessageContext,
 ) string {
-
 	if ctx == nil || len(ctx.RecentMessages) == 0 {
 		return ""
 	}
@@ -193,7 +196,6 @@ func extractNameFromContext(
 }
 
 func extractName(text string) string {
-
 	original := strings.TrimSpace(text)
 
 	if original == "" {
@@ -220,10 +222,7 @@ func extractName(text string) string {
 			continue
 		}
 
-		name := strings.TrimSpace(
-			original[len(prefix):],
-		)
-
+		name := strings.TrimSpace(original[len(prefix):])
 		return extractNamePart(name)
 	}
 
@@ -240,9 +239,7 @@ func extractName(text string) string {
 			continue
 		}
 
-		name := strings.TrimSpace(
-			original[len(prefix):],
-		)
+		name := strings.TrimSpace(original[len(prefix):])
 
 		if name == "" {
 			return ""
@@ -261,7 +258,6 @@ func extractName(text string) string {
 }
 
 func extractNamePart(text string) string {
-
 	text = strings.TrimSpace(text)
 
 	if text == "" {
@@ -295,26 +291,19 @@ func extractNamePart(text string) string {
 		}
 	}
 
-	text = strings.TrimSpace(
-		text[:cutIndex],
-	)
+	text = strings.TrimSpace(text[:cutIndex])
 
 	return cleanName(text)
 }
 
 func cleanName(name string) string {
-
 	name = strings.TrimSpace(name)
 
 	if name == "" {
 		return ""
 	}
 
-	name = strings.TrimRight(
-		name,
-		".,!?;:",
-	)
-
+	name = strings.TrimRight(name, ".,!?;:")
 	name = strings.TrimSpace(name)
 
 	if name == "" {
@@ -331,10 +320,7 @@ func cleanName(name string) string {
 }
 
 func isBlockedWord(word string) bool {
-
-	word = strings.ToLower(
-		strings.TrimSpace(word),
-	)
+	word = strings.ToLower(strings.TrimSpace(word))
 
 	switch word {
 	case "sedang",
@@ -349,7 +335,6 @@ func isBlockedWord(word string) bool {
 		"suka",
 		"punya",
 		"memiliki":
-
 		return true
 	}
 
