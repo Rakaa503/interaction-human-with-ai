@@ -13,6 +13,7 @@ import (
 	"github.com/Rakaa503/AviGo/internal/decision"
 	"github.com/Rakaa503/AviGo/internal/interaction"
 	"github.com/Rakaa503/AviGo/internal/knowledge"
+	"github.com/Rakaa503/AviGo/internal/lazarus"
 	"github.com/Rakaa503/AviGo/internal/orchestrator"
 	"github.com/Rakaa503/AviGo/internal/response"
 )
@@ -27,10 +28,7 @@ func main() {
 	db := database.Connect(cfg.DatabaseURL)
 
 	if err := database.Ping(db); err != nil {
-		log.Fatalf(
-			"database ping failed: %v",
-			err,
-		)
+		log.Fatalf("database ping failed: %v", err)
 	}
 
 	// =========================
@@ -38,6 +36,17 @@ func main() {
 	// =========================
 
 	app := fiber.New()
+
+	// =========================
+	// Lazarus Protection
+	// =========================
+	// Membatasi maksimal 100 request API yang sedang diproses
+	// secara bersamaan. Request berlebih ditolak tanpa antrean.
+
+	lazarusLimiter, err := lazarus.NewLimiter(100)
+	if err != nil {
+		log.Fatalf("initialize Lazarus limiter: %v", err)
+	}
 
 	// =========================
 	// Conversation Module
@@ -136,10 +145,11 @@ func main() {
 	)
 
 	// =========================
-	// API v1
+	// API v1 + Lazarus
 	// =========================
 
 	api := app.Group("/api/v1")
+	api.Use(lazarus.Middleware(lazarusLimiter))
 
 	// -------------------------
 	// Conversation Routes
